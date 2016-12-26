@@ -4,6 +4,7 @@
 #include <vtkLineSource.h>
 #include <vtkPlane.h>
 #include <vtkPlaneSource.h>
+#include <vtkRegularPolygonSource.h>
 #include <vtkPointData.h>
 #include <vtkSphereSource.h>
 #include <vtkPolyData.h>
@@ -16,6 +17,7 @@
 #include <vtkImplicitPolyDataDistance.h>
 #include <vtkVertexGlyphFilter.h>
 #include <vtkUnsignedCharArray.h>
+#include <vtkSTLReader.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataMapper.h>
@@ -23,6 +25,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
+
+#define RANDOM_COUNTER 30
 
 using namespace std;
 
@@ -98,9 +102,10 @@ vtkSmartPointer<vtkUnsignedCharArray> dyeForCells(int numbersOfCells)
 }
 
 //找出一定数目的最小距离
-double* getMinDistance(vtkSmartPointer<vtkFloatArray> distances)
+void getMinDistance(vtkSmartPointer<vtkDoubleArray> distances, vtkSmartPointer<vtkDoubleArray> minDistances)
 {
 	double minDistance[20];
+	//minDistances->SetNumberOfComponents(1);
 	int length = distances->GetNumberOfTuples();
 	vector<double> data;
 	for (int i = 0; i < length; i++)
@@ -117,29 +122,125 @@ double* getMinDistance(vtkSmartPointer<vtkFloatArray> distances)
 			cout << endl;
 		}
 		cout << n << "：" << minDistance[n] << "\t";
+		//minDistances->InsertNextValue(minDistance[n]);
 	}
 	cout << endl;
-	return minDistance;
 }
 
-int main(int, char *[])
+//产生30个(-1, 1)之间的随机小数,记作(x, y)
+void GetRandomCoordinate(vtkSmartPointer<vtkDoubleArray> &coordinates)
 {
+	coordinates->SetNumberOfComponents(3);
+	double coordinate1[3];
+	double coordinate2[3];
+	vtkMath::RandomSeed(time(NULL));
+	for (int i = 0; i < RANDOM_COUNTER / 2; i++)
+	{
+		double randomX = vtkMath::Random(-1.0, 1.0);
+		//cout << "产生的随机数" << i << ":" << randomX << endl;
+		coordinate1[0] = randomX;
+		coordinate1[1] = sqrt(1.0 - randomX * randomX);
+		coordinate1[2] = 1.0;
+		coordinate2[0] = randomX;
+		coordinate2[1] = -sqrt(1.0 - randomX * randomX);
+		coordinate2[2] = 1.0;
+		coordinates->InsertNextTuple(coordinate1);
+		coordinates->InsertNextTuple(coordinate2);
+	}
+}
+
+//计算圆周到数据集上的距离
+void ComputeDistanceFromCircle(vtkSmartPointer<vtkDoubleArray> &distances, vtkSmartPointer<vtkPolyData> data, vtkSmartPointer<vtkDoubleArray> coordinates)
+{
+	//vtkSmartPointer<vtkImplicitPolyDataDistance> implicitPolyDataDistance =
+	//	vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+	//implicitPolyDataDistance->SetInput(data);
+	//vtkSmartPointer<vtkFloatArray> distances =
+	//	vtkSmartPointer<vtkFloatArray>::New();
+	//distances->SetNumberOfComponents(1);
+	//distances->SetName("Distances");
+
+	//for (vtkIdType i = 0; i < cellCenter->GetOutput()->GetNumberOfPoints(); i++)
+	//{
+	//	double pointOnSphere[3];
+	//	double pointOnPlane[3];
+	//	cellCenter->GetOutput()->GetPoint(i, pointOnSphere);
+	//	pointOnPlane[0] = pointOnSphere[0];
+	//	pointOnPlane[1] = pointOnSphere[1];
+	//	pointOnPlane[2] = 1.0;
+	//	//将所有相关的点集存到一个容器中
+	//	points->InsertNextPoint(pointOnSphere);
+	//	points->InsertNextPoint(pointOnPlane);
+	//	//计算距离圆上的三角面片中点到平面的距离
+	//	float distance = implicitPolyDataDistance->EvaluateFunction(pointOnSphere);
+	//	if (distance < 0)
+	//	{
+	//		distance = -distance;
+	//	}
+	//	distances->InsertNextValue(distance);
+	//	if (!(i % 5))
+	//	{
+	//		//cout << endl;
+	//	}
+	//	//cout << "Distance:" << distance << "\t"; 
+
+	//}
+	vtkSmartPointer<vtkImplicitPolyDataDistance> implicitPolyDataDistance =
+		vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+	implicitPolyDataDistance->SetInput(data);
+	distances->SetNumberOfComponents(1);
+	distances->SetName("Distances");
+
+	for (vtkIdType i = 0; i < coordinates->GetNumberOfTuples(); i++)
+	{
+		double point[3];
+		coordinates->GetTupleValue(i, point);
+		//计算距离圆上的三角面片中点到平面的距离
+		double distance = implicitPolyDataDistance->EvaluateFunction(point);
+		if (distance < 0)
+		{
+			distance = -distance;
+		}
+		distances->InsertNextValue(distance);
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	vtkSmartPointer<vtkPolyData> data;
+	if (argc > 1)
+	{
+		vtkSmartPointer<vtkSTLReader> reader =
+			vtkSmartPointer<vtkSTLReader>::New();
+		reader->SetFileName(argv[1]);
+		reader->Update();
+
+		data = reader->GetOutput();
+	}
+	else
+	{
+		// Create a sphere
+		vtkSmartPointer<vtkSphereSource> sphereSource =
+			vtkSmartPointer<vtkSphereSource>::New();
+		sphereSource->SetCenter(0.0, 0.0, 0.0);
+		sphereSource->SetRadius(0.5);
+		sphereSource->Update();
+
+		data = sphereSource->GetOutput();
+	}
 	// Create a plane
-	vtkSmartPointer<vtkPlaneSource> planeSource =
-		vtkSmartPointer<vtkPlaneSource>::New();
+	vtkSmartPointer<vtkRegularPolygonSource> planeSource =
+		vtkSmartPointer<vtkRegularPolygonSource>::New();
 	planeSource->SetCenter(planeCenter);
+	planeSource->SetNumberOfSides(100);
+	planeSource->SetRadius(0.25);
 	planeSource->SetNormal(planeNormal);
 	planeSource->Update();
 
-	// Create a sphere
-	vtkSmartPointer<vtkSphereSource> sphereSource =
-		vtkSmartPointer<vtkSphereSource>::New();
-	sphereSource->SetCenter(0.0, 0.0, 0.0);
-	sphereSource->SetRadius(0.5);
-	sphereSource->Update();
+	
 
 	vtkSmartPointer<vtkCellCenters> cellCenter =
-		getCenterPoints(sphereSource->GetOutput());
+		getCenterPoints(data);
 	vtkSmartPointer<vtkPolyData> linesPolyData =
 		vtkSmartPointer<vtkPolyData>::New();
 	vtkSmartPointer<vtkCellArray> lines =
@@ -147,57 +248,40 @@ int main(int, char *[])
 	vtkSmartPointer<vtkPoints> points =
 		vtkSmartPointer<vtkPoints>::New();
 
-	// compute distances to each point
-	vtkSmartPointer<vtkImplicitPolyDataDistance> implicitPolyDataDistance =
-		vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-	implicitPolyDataDistance->SetInput(planeSource->GetOutput());
-	vtkSmartPointer<vtkFloatArray> distances =
-		vtkSmartPointer<vtkFloatArray>::New();
-	distances->SetNumberOfComponents(1);
-	distances->SetName("Distances");
-	for (vtkIdType i = 0; i < cellCenter->GetOutput()->GetNumberOfPoints(); i++)
+	//输出随机点
+	cout << "随机坐标点" << endl;
+	vtkSmartPointer<vtkDoubleArray> coordinates =
+		vtkSmartPointer<vtkDoubleArray>::New();
+	GetRandomCoordinate(coordinates);
+	for (vtkIdType i = 0; i < coordinates->GetNumberOfTuples(); i++)
 	{
-		double pointOnSphere[3];
-		double pointOnPlane[3];
-		cellCenter->GetOutput()->GetPoint(i, pointOnSphere);
-		pointOnPlane[0] = pointOnSphere[0];
-		pointOnPlane[1] = pointOnSphere[1];
-		pointOnPlane[2] = 1.0;
-		//将所有相关的点集存到一个容器中
-		points->InsertNextPoint(pointOnSphere);
-		points->InsertNextPoint(pointOnPlane);
-		//计算距离圆上的三角面片中点到平面的距离
-		float distance = implicitPolyDataDistance->EvaluateFunction(pointOnSphere);
-		if (distance < 0)
-		{
-			distance = -distance;
-		}
-		distances->InsertNextValue(distance);
-		if (!(i % 5))
-		{
-			cout << endl;
-		}
-		cout << "Distance:" << distance << "\t"; 
-		
+		double coordinate[3];
+		coordinates->GetTupleValue(i, coordinate);
+		cout << "(" << coordinate[0] << ", " << coordinate[1] << "," << coordinate[2] << ")" << endl;
 	}
-	cout << endl;
 
-	getMinDistance(distances);
+	// compute distances to each point
+	vtkSmartPointer<vtkDoubleArray> distances =
+		vtkSmartPointer<vtkDoubleArray>::New();
 	
-	linesPolyData->SetPoints(points);
-	//绘制直线
-	for (vtkIdType j = 0; j < linesPolyData->GetNumberOfPoints();)
-	{
-		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-		//cout << "point1:" << points->GetPoint(j)[0] << "," << points->GetPoint(j)[1] << "," << points->GetPoint(j)[2] << endl;
-		//cout << "point2:" << points->GetPoint(j + 1)[0] << "," << points->GetPoint(j + 1)[1] << "," << points->GetPoint(j + 1)[2] << endl;
-		line->GetPointIds()->SetId(0, j);
-		line->GetPointIds()->SetId(1, j + 1);
-		j += 2;
-		lines->InsertNextCell(line);
-	}
-	linesPolyData->SetLines(lines);
-	linesPolyData->GetCellData()->SetScalars(dyeForCells(cellCenter->GetOutput()->GetNumberOfPoints()));
+	ComputeDistanceFromCircle(distances, data, coordinates);
+	vtkSmartPointer<vtkDoubleArray> minDistances;
+	getMinDistance(distances, minDistances);
+	
+	//linesPolyData->SetPoints(points);
+	////绘制直线
+	//for (vtkIdType j = 0; j < points->GetNumberOfPoints();)
+	//{
+	//	vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+	//	//cout << "point1:" << points->GetPoint(j)[0] << "," << points->GetPoint(j)[1] << "," << points->GetPoint(j)[2] << endl;
+	//	//cout << "point2:" << points->GetPoint(j + 1)[0] << "," << points->GetPoint(j + 1)[1] << "," << points->GetPoint(j + 1)[2] << endl;
+	//	line->GetPointIds()->SetId(0, j);
+	//	line->GetPointIds()->SetId(1, j + 1);
+	//	j += 2;
+	//	lines->InsertNextCell(line);
+	//}
+	//linesPolyData->SetLines(lines);
+	//linesPolyData->GetCellData()->SetScalars(dyeForCells(cellCenter->GetOutput()->GetNumberOfPoints()));
 	
 	// Create a mapper and actor
 	vtkSmartPointer<vtkPolyDataMapper> planeMapper =
@@ -213,7 +297,7 @@ int main(int, char *[])
 	mapper->SetInput(plane);
 #else
 	planeMapper->SetInputData(planeSource->GetOutput());
-	sphereMapper->SetInputConnection(sphereSource->GetOutputPort());
+	sphereMapper->SetInputData(data);
 	centerMapper->SetInputConnection(cellCenter->GetOutputPort());
 	vertexMapper->SetInputData(linesPolyData);
 #endif
@@ -246,7 +330,7 @@ int main(int, char *[])
 	renderer->AddActor(planeActor);
 	renderer->AddActor(sphereActor);
 	renderer->AddActor(centerActor);
-	renderer->AddActor(vertexActor);
+	//renderer->AddActor(vertexActor);
 	renderer->SetBackground(.2, .3, .4); // Background color dark blue
 
 	// Render and interact

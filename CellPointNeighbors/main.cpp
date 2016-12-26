@@ -1,6 +1,7 @@
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
+#include <vtkSTLReader.h>
 #include <vtkPolyData.h>
 #include <vtkIdList.h>
 #include <vtkCell.h>
@@ -18,16 +19,33 @@
 
 #include <list>
 
-int main(int, char *[])
+int main(int argc, char *argv[])
 {
-	//Create a sphere
-	vtkSmartPointer<vtkSphereSource> sphereSource =
-		vtkSmartPointer<vtkSphereSource>::New();
-	sphereSource->Update();
+	vtkSmartPointer<vtkPolyData> data;
+	if (argc > 1)
+	{
+		vtkSmartPointer<vtkSTLReader> reader =
+			vtkSmartPointer<vtkSTLReader>::New();
+		reader->SetFileName(argv[1]);
+		reader->Update();
+
+		data = reader->GetOutput();
+	}
+	else
+	{
+		// Create a sphere
+		vtkSmartPointer<vtkSphereSource> sphereSource =
+			vtkSmartPointer<vtkSphereSource>::New();
+		sphereSource->SetCenter(0.0, 0.0, 0.0);
+		sphereSource->SetRadius(0.5);
+		sphereSource->Update();
+
+		data = sphereSource->GetOutput();
+	}
 
 	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
 		vtkSmartPointer<vtkTriangleFilter>::New();
-	triangleFilter->SetInputConnection(sphereSource->GetOutputPort());
+	triangleFilter->SetInputData(data);
 	triangleFilter->Update();
 
 	// Find all cells connected to point 0
@@ -77,7 +95,7 @@ int main(int, char *[])
 
 	vtkSmartPointer<vtkDataSetMapper> sphereMapper =
 		vtkSmartPointer<vtkDataSetMapper>::New();
-	sphereMapper->SetInputConnection(sphereSource->GetOutputPort());
+	sphereMapper->SetInputData(data);
 	vtkSmartPointer<vtkActor> sphereActor =
 		vtkSmartPointer<vtkActor>::New();
 	sphereActor->SetMapper(sphereMapper);
@@ -109,7 +127,7 @@ int main(int, char *[])
 
 		vtkSmartPointer<vtkExtractSelection> extractSelection =
 			vtkSmartPointer<vtkExtractSelection>::New();
-		extractSelection->SetInputConnection(0, sphereSource->GetOutputPort());
+		extractSelection->SetInputData(0, data);
 #if VTK_MAJOR_VERSION <= 5
 		extractSelection->SetInput(1, selection);
 #else
@@ -148,7 +166,7 @@ int main(int, char *[])
 
 		vtkSmartPointer<vtkExtractSelection> extractSelection =
 			vtkSmartPointer<vtkExtractSelection>::New();
-		extractSelection->SetInputConnection(0, sphereSource->GetOutputPort());
+		extractSelection->SetInputData(0, data);
 #if VTK_MAJOR_VERSION <= 5
 		extractSelection->SetInput(1, selection);
 #else

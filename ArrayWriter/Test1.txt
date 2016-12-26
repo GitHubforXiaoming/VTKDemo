@@ -1,0 +1,9 @@
+vtk-dense-array double
+ascii
+
+0 1 0 3 3
+
+
+1
+2
+3

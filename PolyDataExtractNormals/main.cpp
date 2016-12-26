@@ -8,6 +8,7 @@
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
+#include <vtkSTLReader.h>
 #include <vtkXMLPolyDataReader.h>
 
 void TestPointNormals(vtkPolyData* polydata);
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
 		std::string filename = argv[1]; //first command line argument
 		std::cout << "Reading file " << filename << "..." << std::endl;
 
-		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
 		std::cout << "Reading " << filename << std::endl;
 		reader->SetFileName(filename.c_str());
 		reader->Update();
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "PolyData address: " << polydata << std::endl;
 
-	TestPointNormals(polydata);
+	//TestPointNormals(polydata);
 
 	TestCellNormals(polydata);
 
@@ -244,66 +245,6 @@ bool GetPointNormals(vtkPolyData* polydata)
 
 bool GetCellNormals(vtkPolyData* polydata)
 {
-	std::cout << "Looking for cell normals..." << std::endl;
-
-	// Count points
-	vtkIdType numCells = polydata->GetNumberOfCells();
-	std::cout << "There are " << numCells << " cells." << std::endl;
-
-	// Count triangles
-	vtkIdType numPolys = polydata->GetNumberOfPolys();
-	std::cout << "There are " << numPolys << " polys." << std::endl;
-
-	////////////////////////////////////////////////////////////////
-	// Double normals in an array
-	vtkDoubleArray* normalDataDouble =
-		vtkDoubleArray::SafeDownCast(polydata->GetCellData()->GetArray("Normals"));
-
-	if (normalDataDouble)
-	{
-		int nc = normalDataDouble->GetNumberOfTuples();
-		std::cout << "There are " << nc
-			<< " components in normalDataDouble" << std::endl;
-		return true;
-	}
-
-	////////////////////////////////////////////////////////////////
-	// Double normals in an array
-	vtkFloatArray* normalDataFloat =
-		vtkFloatArray::SafeDownCast(polydata->GetCellData()->GetArray("Normals"));
-
-	if (normalDataFloat)
-	{
-		int nc = normalDataFloat->GetNumberOfTuples();
-		std::cout << "There are " << nc
-			<< " components in normalDataFloat" << std::endl;
-		return true;
-	}
-
-	////////////////////////////////////////////////////////////////
-	// Point normals
-	vtkDoubleArray* normalsDouble =
-		vtkDoubleArray::SafeDownCast(polydata->GetCellData()->GetNormals());
-
-	if (normalsDouble)
-	{
-		std::cout << "There are " << normalsDouble->GetNumberOfComponents()
-			<< " components in normalsDouble" << std::endl;
-		return true;
-	}
-
-	////////////////////////////////////////////////////////////////
-	// Point normals
-	vtkFloatArray* normalsFloat =
-		vtkFloatArray::SafeDownCast(polydata->GetCellData()->GetNormals());
-
-	if (normalsFloat)
-	{
-		std::cout << "There are " << normalsFloat->GetNumberOfComponents()
-			<< " components in normalsFloat" << std::endl;
-		return true;
-	}
-
 	/////////////////////////////////////////////////////////////////////
 	// Generic type point normals
 	vtkDataArray* normalsGeneric = polydata->GetCellData()->GetNormals(); //works
