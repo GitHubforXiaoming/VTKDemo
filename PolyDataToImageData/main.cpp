@@ -2,11 +2,20 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkImageData.h>
+#include <vtkMetaImageReader.h>
 #include <vtkSphereSource.h>
 #include <vtkMetaImageWriter.h>
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkImageStencil.h>
 #include <vtkPointData.h>
+#include <vtkSTLReader.h>
+
+#include <vtkInteractorStyleImage.h>
+#include <vtkRenderer.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapper3D.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
 /**
 * This program generates a sphere (closed surface, vtkPolyData) and converts it into volume
@@ -14,20 +23,32 @@
 * 0. Internally vtkPolyDataToImageStencil is utilized. The resultant image is saved to disk
 * in metaimage file format (SphereVolume.mhd).
 */
-int main(int, char *[])
+int main(int argc, char *argv[])
 {
-	vtkSmartPointer<vtkSphereSource> sphereSource =
-		vtkSmartPointer<vtkSphereSource>::New();
-	sphereSource->SetRadius(20);
-	sphereSource->SetPhiResolution(30);
-	sphereSource->SetThetaResolution(30);
-	vtkSmartPointer<vtkPolyData> pd = sphereSource->GetOutput();
-	sphereSource->Update();
+	vtkSmartPointer<vtkPolyData> data;
+	if (argc > 1)
+	{
+		vtkSmartPointer<vtkSTLReader> reader =
+			vtkSmartPointer<vtkSTLReader>::New();
+		reader->SetFileName(argv[1]);
+		reader->Update();
+		data = reader->GetOutput();
+	}
+	else
+	{
+		vtkSmartPointer<vtkSphereSource> sphereSource =
+			vtkSmartPointer<vtkSphereSource>::New();
+		sphereSource->SetRadius(20);
+		sphereSource->SetPhiResolution(30);
+		sphereSource->SetThetaResolution(30);
+		sphereSource->Update();
+		data = sphereSource->GetOutput();
+	}
 
 	vtkSmartPointer<vtkImageData> whiteImage =
 		vtkSmartPointer<vtkImageData>::New();
 	double bounds[6];
-	pd->GetBounds(bounds);
+	data->GetBounds(bounds);
 	double spacing[3]; // desired volume spacing
 	spacing[0] = 0.5;
 	spacing[1] = 0.5;
@@ -70,7 +91,7 @@ int main(int, char *[])
 #if VTK_MAJOR_VERSION <= 5
 	pol2stenc->SetInput(pd);
 #else
-	pol2stenc->SetInputData(pd);
+	pol2stenc->SetInputData(data);
 #endif
 	pol2stenc->SetOutputOrigin(origin);
 	pol2stenc->SetOutputSpacing(spacing);
@@ -100,6 +121,37 @@ int main(int, char *[])
 	writer->SetInputData(imgstenc->GetOutput());
 #endif
 	writer->Write();
+
+	vtkSmartPointer<vtkMetaImageReader> reader =
+		vtkSmartPointer<vtkMetaImageReader>::New();
+	reader->SetFileName("SphereVolume.mhd");
+	reader->Update();
+
+	// Visualize
+	vtkSmartPointer<vtkImageActor> actor =
+		vtkSmartPointer<vtkImageActor>::New();
+	actor->GetMapper()->SetInputConnection(reader->GetOutputPort());
+
+	vtkSmartPointer<vtkRenderer> renderer =
+		vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->ResetCamera();
+
+	vtkSmartPointer<vtkRenderWindow> renderWindow =
+		vtkSmartPointer<vtkRenderWindow>::New();
+	renderWindow->AddRenderer(renderer);
+
+	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+		vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	vtkSmartPointer<vtkInteractorStyleImage> style =
+		vtkSmartPointer<vtkInteractorStyleImage>::New();
+
+	renderWindowInteractor->SetInteractorStyle(style);
+
+	renderWindowInteractor->SetRenderWindow(renderWindow);
+	renderWindowInteractor->Initialize();
+
+	renderWindowInteractor->Start();
 
 	return EXIT_SUCCESS;
 }

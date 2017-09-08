@@ -1,0 +1,3 @@
+﻿  MatrixToMat.cpp
+d:\projects\vtkdemo\matrixtomat\matrixtomat.cpp(43): warning C4552: “<”: 运算符不起任何作用；应输入带副作用的运算符
+  MatrixToMat.vcxproj -> D:\projects\VTKDemo\Debug\MatrixToMat.exe

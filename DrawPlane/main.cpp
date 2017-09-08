@@ -327,11 +327,11 @@ int main(int argc, char *argv[])
 	renderWindowInteractor->SetRenderWindow(renderWindow);
 
 	// Add the actors to the scene
-	renderer->AddActor(planeActor);
+	//renderer->AddActor(planeActor);
 	renderer->AddActor(sphereActor);
 	renderer->AddActor(centerActor);
 	//renderer->AddActor(vertexActor);
-	renderer->SetBackground(.2, .3, .4); // Background color dark blue
+	renderer->SetBackground(0, 0, 0); // Background color dark blue
 
 	// Render and interact
 	renderWindow->Render();

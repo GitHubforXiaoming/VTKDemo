@@ -11,6 +11,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkSTLReader.h>
 
 int main(int argc, char *argv[])
 {
@@ -44,14 +45,14 @@ int main(int argc, char *argv[])
 		}
 		std::string inputFilename1 = argv[1];
 		std::string inputFilename2 = argv[2];
-		vtkSmartPointer<vtkXMLPolyDataReader> reader1 =
-			vtkSmartPointer<vtkXMLPolyDataReader>::New();
+		vtkSmartPointer<vtkSTLReader> reader1 =
+			vtkSmartPointer<vtkSTLReader>::New();
 		reader1->SetFileName(inputFilename1.c_str());
 		reader1->Update();
 		input1->ShallowCopy(reader1->GetOutput());
 
-		vtkSmartPointer<vtkXMLPolyDataReader> reader2 =
-			vtkSmartPointer<vtkXMLPolyDataReader>::New();
+		vtkSmartPointer<vtkSTLReader> reader2 =
+			vtkSmartPointer<vtkSTLReader>::New();
 		reader2->SetFileName(inputFilename2.c_str());
 		reader2->Update();
 		input2->ShallowCopy(reader2->GetOutput());

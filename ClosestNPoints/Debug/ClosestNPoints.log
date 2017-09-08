@@ -1,0 +1,3 @@
+﻿  ClosestNPoints.cpp
+ClosestNPoints.cpp(31): warning C4018: “<”: 有符号/无符号不匹配
+  ClosestNPoints.vcxproj -> D:\projects\VTKDemo\Debug\ClosestNPoints.exe

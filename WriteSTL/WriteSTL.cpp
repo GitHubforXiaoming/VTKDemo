@@ -26,13 +26,15 @@ int main(int argc, char *argv[])
 	vtkSmartPointer<vtkSphereSource> sphereSource2 =
 		vtkSmartPointer<vtkSphereSource>::New();
 	sphereSource2->SetCenter(0, 0, 1);
+	sphereSource2->SetRadius(2);
+	sphereSource2->SetPhiResolution(80);
 	sphereSource2->Update();
 
 	vtkSmartPointer<vtkSTLWriter> stlWriter =
 		vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriter->SetFileName(filename.c_str());
-	stlWriter->SetInputConnection(sphereSource->GetOutputPort());
-	stlWriter->SetInputConnection(sphereSource2->GetOutputPort());
+	stlWriter->SetInputData(0, sphereSource->GetOutput());
+	stlWriter->SetInputData(1, sphereSource2->GetOutput());
 	stlWriter->Write();
 
 	// Read and display for verification

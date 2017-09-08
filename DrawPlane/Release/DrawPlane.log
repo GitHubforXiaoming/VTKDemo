@@ -1,0 +1,4 @@
+﻿  main.cpp
+main.obj : error LNK2001: 无法解析的外部符号 __imp___CrtDbgReportW
+D:\projects\VTKDemo\Release\DrawPlane.exe : fatal error LNK1120: 1 个无法解析的外部命令
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppCommon.targets(607,5): error MSB6006: “link.exe”已退出，代码为 1120。

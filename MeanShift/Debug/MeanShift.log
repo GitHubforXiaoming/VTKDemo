@@ -1,0 +1,8 @@
+﻿  cpp_test.cpp
+d:\projects\vtkdemo\meanshift\cpp_test.cpp(67): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\meanshift\cpp_test.cpp(68): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\meanshift\cpp_test.cpp(100): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\meanshift\cpp_test.cpp(102): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\meanshift\cpp_test.cpp(103): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\meanshift\cpp_test.cpp(108): warning C4018: “<”: 有符号/无符号不匹配
+  MeanShift.vcxproj -> D:\projects\VTKDemo\Debug\MeanShift.exe

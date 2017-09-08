@@ -1,0 +1,6 @@
+﻿  BlockMatch.cpp
+d:\projects\vtkdemo\blockmatch\blockmatch.cpp(22): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\blockmatch\blockmatch.cpp(47): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\blockmatch\blockmatch.cpp(49): warning C4018: “<”: 有符号/无符号不匹配
+d:\projects\vtkdemo\blockmatch\blockmatch.cpp(51): warning C4018: “>”: 有符号/无符号不匹配
+  BlockMatch.vcxproj -> D:\projects\VTKDemo\Debug\BlockMatch.exe

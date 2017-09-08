@@ -118,7 +118,7 @@ int main(int, char*[])
 	vtkSmartPointer<vtkLineSource> vector1Source =
 		vtkSmartPointer<vtkLineSource>::New();
 	vector1Source->SetPoint1(0, 0, 0);
-	vector1Source->SetPoint1(scale * evec1->GetValue(0), scale* evec1->GetValue(1), 0);
+	vector1Source->SetPoint1(scale * evec1->GetValue(0), scale * evec1->GetValue(1), 0);
 
 	vtkSmartPointer<vtkPolyDataMapper> vec1Mapper =
 		vtkSmartPointer<vtkPolyDataMapper>::New();
